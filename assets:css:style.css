@@ -22,3 +22,57 @@ body \{ font-family: 'Inter', sans-serif; background-color: #f8fafc; \}\
 /* Utilidades opcionales */\
 .prose-center \{ max-width: 65ch; margin-left: auto; margin-right: auto; \}\
 }
+
+/* ===== Fondo dinámico YEBN (scroll-reactivo) ===== */
+:root {
+  /* Tonos suaves inspirados en la paleta actual */
+  --yebn-yellow-soft: #fde68a; /* amber-300 */
+  --yebn-yellow-soft-2: #f59e0b33; /* amber-500 con transparencia */
+  --yebn-blue-soft:   #c7d2fe; /* indigo-200 */
+  --yebn-blue-soft-2: #93c5fd33; /* blue-300 con transparencia */
+
+  /* Variables reactivas al scroll (se actualizan por JS) */
+  --scroll-p: 0;      /* 0 → 1 */
+  --rot: 0deg;        /* rotación lenta */
+  --shift: 0%;        /* desplaza gradientes */
+  --bg-opacity: 0;    /* aparece con el scroll */
+}
+
+/***** Capa del fondo *****/
+.dynamic-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1; /* detrás de todo */
+  pointer-events: none;
+  opacity: var(--bg-opacity);
+  transition: opacity 400ms ease; /* suaviza la aparición */
+  background:
+    /* capa 1: conic suave azul */
+    conic-gradient(from calc(var(--rot)) at 70% 30%,
+      var(--yebn-blue-soft) 0%,
+      transparent 60%) ,
+    /* capa 2: radial amarilla */
+    radial-gradient(1200px 800px at calc(20% + var(--shift)) 30%,
+      var(--yebn-yellow-soft),
+      transparent 70%),
+    /* capa 3: velo sutil mezclado */
+    radial-gradient(900px 600px at 80% calc(60% + var(--shift)),
+      var(--yebn-blue-soft-2),
+      transparent 60%),
+    radial-gradient(700px 500px at 30% 80%,
+      var(--yebn-yellow-soft-2),
+      transparent 65%);
+  background-blend-mode: screen, normal, screen, multiply;
+  filter: saturate(1.05) blur(0.3px); /* muy sutil para suavizar */
+}
+
+/* Mejora del contraste bajo el header fijo */
+[data-has-dynamic-bg] header {
+  backdrop-filter: saturate(1.1) blur(2px);
+  background-color: rgba(255,255,255,0.9);
+}
+
+/* Accesibilidad: si el usuario prefiere menos animación, congelamos el fondo */
+@media (prefers-reduced-motion: reduce) {
+  .dynamic-bg { transition: none; }
+}
