@@ -17,3 +17,51 @@ if (btn && menu) \{\
   \});\
 \}\
 }
+
+// ===== Fondo dinámico reactivo al scroll =====
+(function () {
+  const root = document.documentElement;
+  const bgEl = document.querySelector('.dynamic-bg');
+  if (!bgEl) return;
+
+  // Throttle sencillo para no saturar el hilo de render
+  let ticking = false;
+  const onScroll = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      const doc = document.documentElement;
+      const scrollTop = doc.scrollTop || document.body.scrollTop || 0;
+      const scrollHeight = doc.scrollHeight - doc.clientHeight || 1;
+      const p = Math.min(1, Math.max(0, scrollTop / scrollHeight)); // 0→1
+
+      // Aparece progresivamente entre 0% y 35% del scroll
+      const appear = Math.min(1, p / 0.35);
+
+      // Movimiento sutil: rotación y desplazamiento
+      const rot = (p * 120).toFixed(2) + 'deg'; // hasta ~120º
+      const shift = (p * 20).toFixed(2) + '%';  // desplaza focos
+
+      root.style.setProperty('--scroll-p', p.toFixed(4));
+      root.style.setProperty('--bg-opacity', appear.toFixed(3));
+      root.style.setProperty('--rot', rot);
+      root.style.setProperty('--shift', shift);
+      ticking = false;
+    });
+  };
+
+  // Prefiere menos movimiento => solo aparece sin desplazarse
+  const mediaReduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const applyReduced = () => {
+    if (mediaReduce.matches) {
+      root.style.setProperty('--rot', '0deg');
+      root.style.setProperty('--shift', '0%');
+    }
+  };
+  mediaReduce.addEventListener?.('change', applyReduced);
+  applyReduced();
+
+  // Inicializa en carga y escucha scroll
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
+})();
